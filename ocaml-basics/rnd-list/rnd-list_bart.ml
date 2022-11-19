@@ -4,3 +4,5 @@ let rec rnd_list n b =
 ;;
 
 rnd_list 10 5;;
+
+rnd_list 5 1000;;

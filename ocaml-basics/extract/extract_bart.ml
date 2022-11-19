@@ -9,3 +9,18 @@ extract 0 [1;2;3];;
 extract 1 [1;2;3];;
 extract 2 [1;2;3];;
 extract 3 [1;2;3];;
+
+
+(*Estrae alla posizione i della lista, il suddetto elemento*)
+
+let rec extr i = function
+[] -> failwith "index out of bound"
+| h::t -> if i = 0 
+  then (h,t) 
+else let (y,t') = extr (i-1) t
+in (y, h::t');;
+
+extr 0 [1;2;3];;
+extr 1 [1;2;3];;
+extr 2 [1;2;3];;
+extr 3 [1;2;3];;

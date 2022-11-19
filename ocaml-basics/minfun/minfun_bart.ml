@@ -4,3 +4,6 @@ let rec minfun f a b =
       None -> Some (f a)
     | Some n -> if (f a) < n then Some (f a) else Some n
 ;;
+
+
+minfun (fun x -> x*x) 3 6;;
