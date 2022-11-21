@@ -1,2 +1,4 @@
 open AndboolexprLib.Main;;
 open AndboolexprLib.Ast;;
+
+print_newline = "Ao ma come funciona";;
