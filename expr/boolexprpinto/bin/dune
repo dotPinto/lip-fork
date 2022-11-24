@@ -1,4 +1,0 @@
-(executable
- (public_name boolexprpinto)
- (name main)
- (libraries boolexprLib))
