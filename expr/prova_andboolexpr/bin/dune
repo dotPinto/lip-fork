@@ -1,0 +1,4 @@
+(executable
+ (public_name prova_andboolexpr)
+ (name main)
+ (libraries prova_andboolexpr))

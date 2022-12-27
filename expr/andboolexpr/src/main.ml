@@ -32,7 +32,7 @@ let rec trace1 = function
   | And(False,_) -> False
   | And(e1,e2) -> let e1' = trace1 e1 in And(e1',e2)
   | Or(True,_) -> True
-  | Or(False,e) -> e
+  | Or(False,e1) -> e1
   | Or(e1,e2) -> let e1' = trace1 e1 in Or(e1',e2)    
   | _ -> raise NoRuleApplies
 
