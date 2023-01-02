@@ -1,0 +1,4 @@
+(executable
+ (public_name prova_sarithexpr)
+ (name main)
+ (libraries prova_sarithexpr))
