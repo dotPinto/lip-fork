@@ -24,6 +24,7 @@ open Ast
 %left OR
 %left AND
 %right NOT
+%nonassoc SUCC,PRED,ISZERO
 
 %%
 
