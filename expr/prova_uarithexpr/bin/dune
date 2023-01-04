@@ -1,0 +1,4 @@
+(executable
+ (public_name prova_uarithexpr)
+ (name main)
+ (libraries prova_uarithexpr))

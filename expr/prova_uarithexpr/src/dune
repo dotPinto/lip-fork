@@ -1,0 +1,7 @@
+(library
+ (name prova_uarithexprLib))
+
+(menhir
+ (modules parser))
+
+(ocamllex lexer)
