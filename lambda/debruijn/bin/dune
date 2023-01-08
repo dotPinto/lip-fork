@@ -1,0 +1,4 @@
+(executable
+ (public_name debruijn)
+ (name main)
+ (libraries debruijnLib))
