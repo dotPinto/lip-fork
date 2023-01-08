@@ -2,6 +2,14 @@ open Ast
 
 type exprval = Bool of bool | Nat of int
 
+exception NoRuleApplies
+exception TypeError of string
+exception UnboundVar of string
+
+let string_of_val = function
+    Bool b -> string_of_bool b 
+  | Nat n -> string_of_int n
+
 let rec string_of_expr = function
     True -> "True"
   | False -> "False"
@@ -22,12 +30,32 @@ let parse (s : string) : expr =
   let ast = Parser.prog Lexer.read lexbuf in
   ast
 
-exception NoRuleApplies
+(*--------
+   Small-Step
+    --------*)
 
 let rec is_nv = function
     Zero -> true
   | Succ(e) -> is_nv e
   | _ -> false
+
+let is_val = function
+    True -> true
+  | False -> true
+  | v when is_nv v -> true
+  | _ -> false
+
+let rec subst x e e' = match e' with
+    If(e0,e1,e2) -> If (subst x e e0,subst x e e1, subst x e e2)
+  | Not(e0) -> Not(subst x e e0)
+  | And(e1,e2) -> And(subst x e e1,subst x e e2)
+  | Or(e1,e2) -> Or(subst x e e1,subst x e e2)
+  | Succ(e1) -> Succ(subst x e e1)
+  | Pred(e1) -> Pred(subst x e e1)
+  | IsZero(e1) -> IsZero(subst x e e1)
+  | Var(y) when y=x -> e
+  | Let(y,e1,e2) when y<>x -> Let(y,subst x e e1,subst x e e2)
+  | _ -> e'
 
 let rec trace1 = function
     If(True,e1,_) -> e1
@@ -49,6 +77,9 @@ let rec trace1 = function
   | IsZero(Zero) -> True
   | IsZero(Succ(e)) when is_nv e -> False
   | IsZero(e) -> let e' = trace1 e in IsZero(e')
+  | Var(_) -> raise NoRuleApplies
+  | Let(x,e1,e2) when is_val e1 -> subst x e1 e2
+  | Let(x,e1,e2) -> let e1' = trace1 e1 in Let(x,e1',e2)
   | _ -> raise NoRuleApplies
 ;;
 
@@ -58,43 +89,58 @@ let rec trace e = try
   with NoRuleApplies -> [e]
 ;;
 
-let string_of_val = function
-    Bool b -> string_of_bool b 
-  | Nat n -> string_of_int n
+let rec last = function
+    [] -> failwith "last on empty list"
+  | [x] -> x
+  | _::l -> last l
 
-exception TypeError of string
+let rec val_of_expr = function
+  True -> Some (Bool true)
+| False -> Some (Bool false)
+| Zero -> Some (Nat 0)
+| Succ(e) -> (match val_of_expr e with
+    | Some (Nat n) -> Some (Nat (n+1))
+    | _ -> None)
+| _ -> None
 
-type id = ID of string
+let eval_smallstep e = val_of_expr (last (trace e))
 
-type env = id -> exprval
+(*------
+Big-Step   
+---------*)
 
-let rec eval = function
+let bot = fun x -> raise (UnboundVar x)
+
+let bind f x v = fun y -> if y=x then v else f y
+
+let rec eval_rec e rho = (match e with
     True -> Bool true
   | False -> Bool false
-  | If(e0,e1,e2) -> (match eval e0 with
-      Bool b -> if b then eval e1 else eval e2
+  | If(e0,e1,e2) -> (match eval_rec e0 rho with
+      Bool b -> if b then eval_rec e1 rho else eval_rec e2 rho
     | _ -> raise (TypeError "If on nat guard")
     )
-  | Not(e) -> 
-    (match (eval e) with 
+  | Not(e) -> (match (eval_rec e rho) with 
         Bool b -> Bool (not b)
       | _ -> raise (TypeError "Not on nat") )
-  | And(e0,e1) -> (match (eval e0, eval e1) with
+  | And(e0,e1) -> (match (eval_rec e0 rho, eval_rec e1 rho) with
     (Bool b, Bool b1) -> Bool (b&&b1) 
     | _ -> raise (TypeError "And on nat")) 
-  | Or(e0,e1) -> (match (eval e0, eval e1) with
+  | Or(e0,e1) -> (match (eval_rec e0 rho, eval_rec e1 rho) with
     (Bool b, Bool b1) -> Bool (b||b1) 
     | _ -> raise (TypeError "Or on nat")) 
   | Zero -> Nat 0
-  | Succ(e) -> (match eval e with 
+  | Succ(e) -> (match eval_rec e rho with 
     Nat n -> Nat (n+1) 
     | _ -> raise (TypeError "Succ on bool"))
-  | Pred(e) -> (match eval e with
+  | Pred(e) -> (match eval_rec e rho with
     Nat n when n>0 -> Nat (n-1)
     | _ -> raise (TypeError "pred on 0"))
-  | IsZero(e) -> (match eval e with
+  | IsZero(e) -> (match eval_rec e rho with
     | Nat n -> Bool (n=0)
     | _ -> raise (TypeError "IsZero on bool"))
-  | _ -> raise (TypeError "Mancano Var _ e Let(_,_,_)")
+  | Var(x) -> rho x
+  | Let(x,e1,e2) -> let v1 = eval_rec e1 rho in eval_rec e2 (bind rho x v1))
 ;;
 
+let eval (e:expr) = eval_rec e bot

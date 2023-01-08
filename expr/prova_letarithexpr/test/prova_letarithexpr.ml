@@ -68,7 +68,6 @@ let%test _ =
  Test small-step semantics
  **********************************************************************)
 
- (* li commento per il momento
 let%test _ =
   print_newline();
   print_endline ("*** Testing small-step semantics...");
@@ -84,4 +83,3 @@ let%test _ =
        b && b')
     true
     (oktests @ errtests)
-*)

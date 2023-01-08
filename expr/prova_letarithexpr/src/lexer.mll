@@ -4,7 +4,7 @@ open Parser
 
 let letter = ['a'-'z' 'A'-'Z']
 let chr = ['a'-'z' 'A'-'Z' '0'-'9']
-let id = letter chr*
+let id = letter+
 
 let white = [' ' '\t']+
 
@@ -25,8 +25,8 @@ rule read =
   | "succ" { SUCC }
   | "pred" { PRED }
   | "iszero" { ISZERO }
-  | id { ID (Lexing.lexeme lexbuf)}
   | "let" { LET }
   | "=" { EQUALTO }
   | "in" { IN }
+  | id { ID (Lexing.lexeme lexbuf)}
   | eof { EOF }
