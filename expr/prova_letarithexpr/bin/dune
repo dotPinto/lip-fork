@@ -1,0 +1,4 @@
+(executable
+ (public_name prova_letarithexpr)
+ (name main)
+ (libraries prova_letarithexprLib))
